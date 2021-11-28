@@ -1,7 +1,7 @@
 import torch
 from torch import nn, optim
-from torchvision import transforms, models
-from torch.utils.data import DataLoader
+from torchvision import transforms, models, datasets
+from torch.utils.data import DataLoader, WeightedRandomSampler
 from MyDataset import MyDataset
 from SKModule import SKNet
 from visdom import Visdom
@@ -13,9 +13,10 @@ epochs = 50
 learning_rate = 9e-6
 seed = 123456
 torch.manual_seed(seed)
-device = torch.device("cuda:0")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-data_path = "../data/cat_vs_dog"
+"""
+data_path = "./brain_data"
 transform = transforms.Compose([
     transforms.Resize((300, 300)),
     transforms.CenterCrop((256,256)),
@@ -28,10 +29,24 @@ dataset = MyDataset(data_path, transform)
 train_dataset, test_dataset = torch.utils.data.random_split(dataset, [int(0.8*len(dataset)), len(dataset)-int(0.8*len(dataset))])
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+"""
+transform_to_tensor = transforms.ToTensor()
+# in train data, healthy 0: unhealthy 1 = 13: 41, to get balanced data, we need to consider the ratio 
+train_data = datasets.ImageFolder('./brain_data/train_data', transform=transform_to_tensor)
+test_data = datasets.ImageFolder('./brain_data/test_data', transform=transform_to_tensor)
+# use a sampler with weight to get balanced data
+weights = [41, 13]
+balanced_sampler = WeightedRandomSampler(weights=weights, num_samples=1024, replacement=True)
+
+train_loader = DataLoader(train_data, batch_size=16, shuffle=False, sampler=balanced_sampler)
+test_loader = DataLoader(test_data, batch_size=16, shuffle=True)
 
 ''' two classification'''
 net = SKNet(2)
 optimizer = optim.Adam(net.parameters(), lr=learning_rate)
+# or deal with imbalance with weighted loss function
+#weights = [41, 13]
+#criterion = nn.CrossEntropyLoss(weight=weights)
 criterion = nn.CrossEntropyLoss()
 net.to(device)
 criterion.to(device)
@@ -77,4 +92,3 @@ for epoch in range(epochs):
     viz.line([[float(np.mean(total_loss)), test_loss]], [epoch], win="train", update="append")
     viz.line([acc], [epoch], win='acc', update='append')
     torch.save(net.state_dict(), "model/resnet18_{}.pkl".format(epoch))
-
