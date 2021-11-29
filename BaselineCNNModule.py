@@ -34,8 +34,8 @@ class BaselineCNNBottleneck(nn.Module):
         x = self.skip(input) if self.skip else input
         return o3 + x
 
-class BaseLineCNNNet(nn.Module):
-    def __init__(self):
+class BaselineCNNNet(nn.Module):
+    def __init__(self, nc):
         super().__init__()
         depths = [2,2,2,2]
         self.conv1 = nn.Conv2d(3, 64, 7, stride=2, padding=3, bias=False)
