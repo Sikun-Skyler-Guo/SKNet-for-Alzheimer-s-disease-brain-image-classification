@@ -2,9 +2,9 @@ import torch
 from torch import nn
 
 class BaselineCNNModule(nn.Module):
-    def __init__(self, in_channel, out_channel, stride = 1):
+    def __init__(self, in_channel, out_channel, stride=1):
         super(BaselineCNNModule, self).__init__()
-        self.branch == nn.Sequential(
+        self.branch = nn.Sequential(
             nn.Conv2d(in_channel, out_channel, 3, stride=stride, padding=1, groups=32),
             nn.BatchNorm2d(out_channel),
             nn.ReLU(inplace=True)
