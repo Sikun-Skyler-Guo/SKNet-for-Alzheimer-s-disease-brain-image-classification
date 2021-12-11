@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from torchvision.transforms.functional import InterpolationMode
 from MyDataset import MyDataset
 from SKModule import SKNet
-from BaselineCNNModule import BaselineCNNNet
 #from visdom import Visdom
 import numpy as np
 '''模型训练'''
@@ -49,8 +48,7 @@ train_loader = DataLoader(train_data, batch_size=10, shuffle=True)
 test_loader = DataLoader(test_data, batch_size=10, shuffle=True)
 
 ''' two classification'''
-#net = SKNet(2)
-net = BaselineCNNNet(2)
+net = SKNet(2)
 optimizer = optim.Adam(net.parameters(), lr=learning_rate)
 # or deal with imbalance with weighted loss function
 weights = torch.FloatTensor([1/13, 1/41])
